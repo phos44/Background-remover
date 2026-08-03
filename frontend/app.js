@@ -9,9 +9,13 @@ const statusText = document.querySelector("#status");
 const fileMeta = document.querySelector("#fileMeta");
 const resultMeta = document.querySelector("#resultMeta");
 const loader = document.querySelector("#loader");
+const modelSelect = document.querySelector("#modelSelect");
+const alphaMatting = document.querySelector("#alphaMatting");
+const postProcessMask = document.querySelector("#postProcessMask");
 
 let selectedFile = null;
 let resultUrl = null;
+let defaultModel = "bria-rmbg";
 
 const setStatus = (message, isError = false) => {
   statusText.textContent = message;
@@ -28,6 +32,34 @@ const revokeResult = () => {
 const formatSize = (bytes) => {
   const mb = bytes / 1024 / 1024;
   return `${mb.toFixed(mb >= 10 ? 0 : 1)} МБ`;
+};
+
+const loadModels = async () => {
+  try {
+    const response = await fetch("/api/models");
+    if (!response.ok) {
+      throw new Error("Не удалось загрузить список моделей");
+    }
+
+    const payload = await response.json();
+    defaultModel = payload.default_model;
+    modelSelect.innerHTML = "";
+
+    payload.models.forEach((model) => {
+      const option = document.createElement("option");
+      option.value = model.id;
+      option.textContent = model.title;
+      option.title = model.description;
+      modelSelect.appendChild(option);
+    });
+
+    modelSelect.value = defaultModel;
+    modelSelect.disabled = false;
+  } catch (error) {
+    modelSelect.innerHTML = '<option value="bria-rmbg">Универсальный (рекомендуется)</option>';
+    modelSelect.disabled = false;
+    setStatus(error.message, true);
+  }
 };
 
 const selectFile = (file) => {
@@ -47,6 +79,14 @@ const selectFile = (file) => {
   setStatus("Файл выбран. Можно запускать обработку.");
 };
 
+const buildRequestUrl = () => {
+  const params = new URLSearchParams();
+  params.set("model", modelSelect.value || defaultModel);
+  params.set("alpha_matting", String(alphaMatting.checked));
+  params.set("post_process_mask", String(postProcessMask.checked));
+  return `/api/remove-background?${params.toString()}`;
+};
+
 const processImage = async () => {
   if (!selectedFile) return;
 
@@ -57,10 +97,10 @@ const processImage = async () => {
   loader.hidden = false;
   resultPreview.hidden = true;
   resultMeta.textContent = "Обработка";
-  setStatus("Удаляю фон...");
+  setStatus("Удаляю фон... Первый запуск модели может занять до минуты.");
 
   try {
-    const response = await fetch("/api/remove-background", {
+    const response = await fetch(buildRequestUrl(), {
       method: "POST",
       body,
     });
@@ -91,6 +131,7 @@ const processImage = async () => {
 pickFile.addEventListener("click", () => fileInput.click());
 fileInput.addEventListener("change", (event) => selectFile(event.target.files[0]));
 processButton.addEventListener("click", processImage);
+loadModels();
 
 ["dragenter", "dragover"].forEach((eventName) => {
   dropZone.addEventListener(eventName, (event) => {
@@ -109,4 +150,3 @@ processButton.addEventListener("click", processImage);
 dropZone.addEventListener("drop", (event) => {
   selectFile(event.dataTransfer.files[0]);
 });
-

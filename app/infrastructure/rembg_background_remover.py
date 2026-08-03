@@ -3,6 +3,7 @@ from PIL import Image
 from app.domain.exceptions import ImageProcessingError
 from app.domain.ports import BackgroundRemover
 from app.domain.processing_options import BackgroundRemovalOptions
+from app.infrastructure.image_preprocessor import prepare_for_inference
 
 
 class RembgBackgroundRemover(BackgroundRemover):
@@ -16,8 +17,9 @@ class RembgBackgroundRemover(BackgroundRemover):
             from rembg import remove
 
             session = self._get_session()
+            prepared = prepare_for_inference(image)
             result = remove(
-                image,
+                prepared,
                 session=session,
                 alpha_matting=options.alpha_matting,
                 alpha_matting_foreground_threshold=options.alpha_matting_foreground_threshold,

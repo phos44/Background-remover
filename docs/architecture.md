@@ -4,7 +4,7 @@
 
 - Backend: FastAPI, Pydantic Settings, Pillow, rembg, ONNX Runtime, structlog.
 - Frontend: HTML, CSS, vanilla JavaScript.
-- Runtime model: `u2net` through `rembg`, cached per process.
+- Runtime model: `bria-rmbg` by default through `rembg`, with selectable alternatives (`isnet-anime`, `isnet-general-use`, `birefnet-general-lite`, `u2net`).
 - Output format: PNG with alpha channel.
 
 ## Project structure
@@ -26,8 +26,8 @@ main.py                ASGI entrypoint
 
 1. Browser uploads an image with `multipart/form-data`.
 2. API validates content type, file size and image integrity.
-3. Pillow decodes and normalizes the image to RGBA.
-4. Background remover adapter runs model inference.
+3. Pillow decodes the image; inference input is normalized to RGB via `prepare_for_inference`.
+4. Background remover adapter runs model inference (model selected via query param).
 5. Result is encoded as optimized PNG.
 6. API returns `image/png` with `Content-Disposition` for download.
 
@@ -41,12 +41,19 @@ Returns:
 {"status":"ok"}
 ```
 
+### `GET /api/models`
+
+Returns available rembg models and the configured default.
+
 ### `POST /api/remove-background`
 
 Request:
 
 - `Content-Type: multipart/form-data`
 - field `image`: JPEG, PNG or WEBP
+- query `model`: optional rembg model id (`bria-rmbg`, `isnet-anime`, ...)
+- query `alpha_matting`: optional bool, refines hair/translucent edges
+- query `post_process_mask`: optional bool, morphological mask smoothing
 
 Responses:
 

@@ -17,6 +17,23 @@
           <a class="api-link" href="/docs" target="_blank" rel="noreferrer">API docs</a>
         </header>
 
+        <section class="controls">
+          <label class="control-field">
+            <span>Модель</span>
+            <select id="modelSelect" disabled>
+              <option value="">Загрузка моделей...</option>
+            </select>
+          </label>
+          <label class="control-toggle">
+            <input id="alphaMatting" type="checkbox" />
+            <span>Уточнение краёв (alpha matting)</span>
+          </label>
+          <label class="control-toggle">
+            <input id="postProcessMask" type="checkbox" />
+            <span>Сглаживание маски</span>
+          </label>
+        </section>
+
         <section class="upload-grid">
           <div id="dropZone" class="drop-zone">
             <input id="fileInput" type="file" accept="image/jpeg,image/png,image/webp" />

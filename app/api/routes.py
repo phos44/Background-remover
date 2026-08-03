@@ -15,20 +15,25 @@ from app.services.background_service import BackgroundRemovalService
 router = APIRouter()
 
 MODEL_CATALOG = {
-    "isnet-general-use": ModelInfo(
-        id="isnet-general-use",
-        title="Универсальный",
-        description="Лучший баланс качества для предметов, людей и смешанных сцен.",
+    "bria-rmbg": ModelInfo(
+        id="bria-rmbg",
+        title="Универсальный (рекомендуется)",
+        description="BRIA RMBG — лучшее качество для фото, предметов и смешанных сцен.",
     ),
     "isnet-anime": ModelInfo(
         id="isnet-anime",
-        title="Иллюстрации",
-        description="Лучше подходит для рисунков, маскотов, аниме и плоской графики.",
+        title="Иллюстрации и аниме",
+        description="Специализированная модель для рисунков, маскотов, аниме и плоской графики.",
+    ),
+    "isnet-general-use": ModelInfo(
+        id="isnet-general-use",
+        title="Универсальный (IS-Net)",
+        description="Хороший баланс качества для предметов, людей и смешанных сцен.",
     ),
     "birefnet-general-lite": ModelInfo(
         id="birefnet-general-lite",
-        title="Максимальное качество",
-        description="Более сильная модель для сложных границ, работает медленнее.",
+        title="Максимальная детализация",
+        description="BiRefNet — точные границы на сложных объектах, работает медленнее.",
     ),
     "u2net": ModelInfo(
         id="u2net",
@@ -66,7 +71,7 @@ async def health() -> HealthResponse:
 async def models(config: Settings = Depends(get_settings)) -> ModelsResponse:
     default_model = config.rembg_model
     if default_model not in MODEL_CATALOG:
-        default_model = "isnet-general-use"
+        default_model = "bria-rmbg"
     return ModelsResponse(models=list(MODEL_CATALOG.values()), default_model=default_model)
 
 
